@@ -2,7 +2,7 @@
 
 const MenuItem = ({item}) => {
   
-    const { _id, name , recipe, image , price, category } = item ;
+    const {  name , recipe, image , price } = item ;
 
 
     return (
