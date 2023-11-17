@@ -4,48 +4,61 @@ import { useForm } from "react-hook-form";
 import { AuthContext } from "../../Providers/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import useAxiosPublic from "../../Hooks/useAxiosPublic";
+import SocialLogin from "../../Components/SocailLogin/SocialLogin";
 
 
 const SignUp = () => {
-
+    const axiosPublic = useAxiosPublic();
     const { register, handleSubmit, reset, formState: { errors }, } = useForm();
-    const {createUser, updateUserProfile} = useContext (AuthContext);
-    const navigate = useNavigate ();
+    const { createUser, updateUserProfile } = useContext(AuthContext);
+    const navigate = useNavigate();
 
-    const onSubmit = data =>{
-        console.log(data);
-        createUser(data.email , data.password)
-        .then (result => {
-            const loggedUser = result.user ;
-            console.log(loggedUser);
-            updateUserProfile (data.name , data.photoURL)
-            .then (() => {
-                console.log('user Profile Info Updated');
-                reset();
-                Swal.fire({
-                    position: "top-end",
-                    icon: "success",
-                    title: "Your work has been saved",
-                    showConfirmButton: false,
-                    timer: 1500
-                  });
+    const onSubmit = data => {
+        createUser(data.email, data.password)
+        
+            .then(result => {
+                const loggedUser = result.user;
+                console.log(loggedUser);
+                updateUserProfile(data.name, data.photoURL)
+                    .then(() => {
+                        //create user entry in the database
+                        const userinfo = {
+                            name: data.name,
+                            email: data.email
+                        }
 
-                  navigate ('/')
+            axiosPublic.post('/users', userinfo)
+                .then(res => {
+                    if (res.data.insertedId) {
+                        console.log('user added to the database');
+                        reset();
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: "Your work has been saved",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        navigate('/')
+                    }
+                })
+
+                    })
+
+                    .catch(error => console.log(error));
 
             })
-
-            .catch (error =>  console.log(error));
-           
-        })
     }
 
     return (
 
         <>
-        <Helmet>
+            <Helmet>
                 <title>Bistro Boss | Sign UP</title>
-              </Helmet>
-           
+            </Helmet>
+
             <div className="hero min-h-screen bg-base-200">
                 <div className="hero-content flex-col lg:flex-row-reverse">
                     <div className="text-center lg:text-left">
@@ -68,7 +81,7 @@ const SignUp = () => {
                                 <label className="label">
                                     <span className="label-text">Photo URL</span>
                                 </label>
-                                <input type="name"  {...register("photoURL", { required: true })}  placeholder="Your Photo" className="input input-bordered" />
+                                <input type="name"  {...register("photoURL", { required: true })} placeholder="Your Photo" className="input input-bordered" />
                                 {errors.photoURL && <span className="text-red-400"> PhotoURL is required</span>}
                             </div>
 
@@ -118,8 +131,8 @@ const SignUp = () => {
                             </div>
                         </form>
 
-                        <p><small>Already Have an Account? <Link className="underline text-red-400" to={'/login'}>Login</Link></small></p>
-
+                        <p className="px-6"><small>Already Have an Account? <Link className="underline text-red-400" to={'/login'}>Login</Link></small></p>
+                        <SocialLogin></SocialLogin>
 
                     </div>
                 </div>
